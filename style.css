@@ -146,7 +146,7 @@ a { color: inherit; }
   font-weight: 500;
 }
 
-.stage { padding: 28px 0 0; }
+.hero-figure { margin-top: 28px; }
 .facts-wrap { padding-top: 14px; }
 .facts {
   display: grid;
