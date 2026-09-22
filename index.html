@@ -24,7 +24,7 @@
       <a href="#overview">Overview</a>
       <a href="#abstract">Abstract</a>
       <a href="#method">Method</a>
-      <a href="#tasks">Tasks</a>
+      <a href="#experiments">Experiments</a>
       <a href="#results">Results</a>
     </nav>
   </header>
@@ -49,48 +49,50 @@
     <div class="page" id="overview">
       <figure class="figure hero-figure">
         <img src="assets/overview.png" width="4384" height="1584" alt="Overview of BEE. A frozen VLA proposes an action chunk. A correction model turns human interventions into a per-dimension constraint, and a residual policy optimizes return subject to that constraint.">
-        <figcaption>A frozen VLA proposes the action chunk. Human corrections become a per-dimension constraint, and a residual policy optimizes return under that constraint. At deployment the interventions are off, with no extra inference cost.</figcaption>
+        <figcaption>During training, a human correction constrains the residual on top of the frozen VLA chunk. At test time only the VLA and the residual run.</figcaption>
       </figure>
     </div>
-
-    <section id="abstract">
-      <div class="page prose">
-        <h2>Abstract</h2>
-        <p>Vision-language-action (VLA) models handle long-horizon manipulation, yet success hinges on a few precision-critical phases where millimeter-scale errors undo all prior progress. Online reinforcement learning (RL) can optimize exactly these actions, but free exploration is far too costly on real robots, which makes human corrections indispensable. Existing online RL methods for VLAs either cannot incorporate such corrections or fold them into undifferentiated supervision. Human corrections are not uniformly noisy: they are reliable along some action dimensions and variable along others.</p>
-        <p>We introduce BEE, an intervention-adaptive framework for real-world RL on a frozen VLA that lets the policy go <em>BEyond Expert imitation</em>. Human corrections are not actions to reproduce, but evidence about a constraint. A Correction Model predicts how a human would correct a given VLA proposal, and how consistent that correction is along each action dimension. This predicted consistency sets the per-dimension tightness of a constraint on policy optimization. Where corrections are consistent the policy stays close to the human; where they vary, the constraint relaxes.</p>
-        <p>We evaluate BEE on three real-world manipulation tasks and one LIBERO-Pro simulation task at a matched online-data budget. BEE attains the highest success rate on every task, 91.2% on average against 57.5% for RLT and 42.1% for DSRL, and the lowest human intervention rate on all real-world tasks.</p>
-      </div>
-    </section>
 
     <div class="page facts-wrap">
       <div class="facts">
         <div>
           <span>Method</span>
-          <strong>A constraint, not a target</strong>
-          <p>The frozen VLA still proposes the chunk. A human correction sets how tightly each action dimension may move.</p>
+          <strong>Constraint on the residual</strong>
+          <p>The frozen VLA still proposes the chunk. A human correction limits each dimension and is not copied as the action.</p>
         </div>
         <div>
-          <span>Tasks</span>
-          <strong>Three real, one simulated</strong>
-          <p>Phone charging, snack hanging, cloth aligning, and bowl placing in LIBERO-Pro.</p>
+          <span>Experiment</span>
+          <strong>5 real, 1 sim</strong>
+          <p>The paper has phone charging, snack hanging, cloth aligning, and bowl placing. Plug insertion and panel pressing were added later.</p>
         </div>
         <div>
-          <span>Success</span>
-          <strong>91.2% on average</strong>
-          <p>Highest on every task, against 57.5% for RLT and 42.1% for DSRL at the same online budget.</p>
+          <span>Result</span>
+          <strong>91.2% on the paper tasks</strong>
+          <p>Best of those four, against 57.5% for RLT and 42.1% for DSRL. The two later tasks are 100/100 and are not in this average.</p>
         </div>
         <div>
           <span>Intervention</span>
-          <strong>Lower on every real task</strong>
-          <p>The operator takes over less often than RLT on phone charging, snack hanging, and cloth aligning.</p>
+          <strong>30.5% vs 49.0%</strong>
+          <p>Corrections are used per dimension, not as a whole action to copy. Takeover is lower than RLT.</p>
         </div>
       </div>
     </div>
 
+    <section id="abstract">
+      <div class="page">
+        <h2>Abstract</h2>
+        <div class="prose">
+        <p>Vision-language-action (VLA) models handle long-horizon manipulation, yet success hinges on a few precision-critical phases where millimeter-scale errors undo all prior progress. Online reinforcement learning (RL) can optimize exactly these actions, but free exploration is far too costly on real robots, which makes human corrections indispensable. Existing online RL methods for VLAs either cannot incorporate such corrections or fold them into undifferentiated supervision. Human corrections are not uniformly noisy: they are reliable along some action dimensions and variable along others.</p>
+        <p>We introduce BEE, an intervention-adaptive framework for real-world RL on a frozen VLA that lets the policy go <em>BEyond Expert imitation</em>. Human corrections are not actions to reproduce, but evidence about a constraint. A Correction Model predicts how a human would correct a given VLA proposal, and how consistent that correction is along each action dimension. This predicted consistency sets the per-dimension tightness of a constraint on policy optimization. Where corrections are consistent the policy stays close to the human; where they vary, the constraint relaxes.</p>
+        <p>We evaluate BEE on three real-world manipulation tasks and one LIBERO-Pro simulation task at a matched online-data budget. BEE attains the highest success rate on every task, 91.2% on average against 57.5% for RLT and 42.1% for DSRL, and the lowest human intervention rate on all real-world tasks.</p>
+        </div>
+      </div>
+    </section>
+
     <section id="method">
       <div class="page">
         <h2>Method</h2>
-        <p class="lead prose">The frozen VLA keeps proposing. BEE trains only a residual, and treats a human correction as a constraint instead of an action to copy. Where the correction repeats, the residual stays close. Where it varies, the constraint relaxes.</p>
+        <p class="lead prose">The VLA is fine-tuned on each task, then frozen, and still outputs the action chunk. BEE trains a residual added to that chunk. A human correction constrains the residual. It is not a label to imitate.</p>
         <ol class="steps">
           <li>
             <em>01</em>
@@ -105,10 +107,10 @@
           <li>
             <em>03</em>
             <strong>Optimize the residual</strong>
-            <p>The residual is added to the proposal. The update trades off return, staying near the VLA, and a per-dimension penalty that follows how consistent the correction is.</p>
+            <p>Add the residual to the VLA chunk. Training raises return, stays near the VLA proposal, and pulls harder on dimensions where the human correction is consistent.</p>
           </li>
         </ol>
-        <h3 class="subhead">Stay close where humans agree</h3>
+        <h3 class="subhead">Human Data Analysis</h3>
         <div class="pair">
           <figure class="figure">
             <div class="plot">
@@ -126,11 +128,12 @@
       </div>
     </section>
 
-    <section id="tasks">
+    <section id="experiments">
       <div class="page">
-        <h2>Tasks</h2>
-        <p class="lead prose">Four tasks are in the paper. Plug insertion and dual-arm panel pressing are further real-robot runs, so they are not part of the 91.2% average. On both of those, training converged within one hour, and 100 later tests all succeeded.</p>
+        <h2>Experiments</h2>
+        <p class="lead prose">The four tasks with stills are the paper comparison. Plug insertion and dual-arm panel pressing were run later and are not in the 91.2% average. On those two, training converged within one hour, and each then succeeded on 100 of 100 tests.</p>
 
+        <h3 class="subhead">Experiments Details</h3>
         <article class="task">
           <div class="task-head">
             <h3>Phone charging</h3>
@@ -186,18 +189,19 @@
           </div>
         </article>
 
+        <h3 class="subhead">Real-World Rollouts</h3>
         <div class="rollouts">
           <figure class="figure">
             <video controls playsinline preload="metadata" poster="assets/phone-charging.jpg">
               <source src="assets/phone-charging.mp4" type="video/mp4">
             </video>
-            <figcaption><strong>Phone charging</strong> One arm picks the charger up from the table, brings the plug to the power strip, and inserts it.</figcaption>
+            <figcaption><strong>Phone charging</strong> One charger insertion.</figcaption>
           </figure>
           <figure class="figure">
             <video controls playsinline preload="metadata" poster="assets/snack-hanging.jpg">
               <source src="assets/snack-hanging.mp4" type="video/mp4">
             </video>
-            <figcaption><strong>Snack hanging</strong> The gripper takes a soft snack bag from the table, lifts it to the rack, and hangs it from the top edge.</figcaption>
+            <figcaption><strong>Snack hanging</strong> One bag hung on the rack.</figcaption>
           </figure>
           <figure class="figure">
             <video controls playsinline preload="metadata" poster="assets/plug-insertion.jpg">
@@ -218,7 +222,7 @@
     <section id="results">
       <div class="page">
         <h2>Results</h2>
-        <p class="lead prose">Every method starts from the same fine-tuned π<sub>0.5</sub> and is given the same total robot interaction: 90 episodes on each real-world task and 45 on bowl placing. BEE, RLT, SiLRI, and HIL-SERL spend about 20 of those episodes as pre-collected human corrections that seed the demonstration buffer, then 70 online episodes on the real tasks and 25 on bowl placing. DSRL and DAgger have no demonstration buffer, so they spend the same 20 episodes online instead.</p>
+        <p class="lead prose">Every method starts from the same fine-tuned π<sub>0.5</sub>. Each real-robot task gets 90 episodes of robot time, and bowl placing gets 45. BEE and RLT use about 20 episodes as human corrections collected before online training, then 70 online episodes on the real tasks and 25 on bowl placing. DSRL and DAgger have no correction buffer, so those 20 episodes are spent online instead.</p>
         <p class="compare">
           <span class="compare-label">Average success</span>
           <span class="bee">BEE <b>91.2%</b></span>
@@ -280,20 +284,20 @@
             </tbody>
           </table>
         </div>
-        <p class="note"><sup>†</sup> At the matched budget. RLT needs roughly 3× the online data to reach 96.7 ± 5.8 on phone charging. Base policy and DSRL have no online intervention. SR is success rate (%). Int. is the fraction of control steps taken over by a human. During online training the operator takes over only when the robot is about to fail in a way it cannot recover from, so corrections concentrate on the contact phase.</p>
-        <p class="lead prose extra">The same budget also rules out methods that do not use the frozen VLA, or that only imitate the operator. On phone charging, DAgger receives 20 extra online episodes in place of the seed corrections and still falls to 63.3 ± 5.8 from the 90% base policy. SiLRI and HIL-SERL train visuomotor policies from scratch; on snack hanging and bowl placing they stay at 0% success and require intervention on more than 90% of steps. A budget of tens of episodes is far below what a from-scratch policy needs on a minute-long task.</p>
+        <p class="note">SR is success rate (%). Int. is the share of control steps a person takes over. The operator steps in when the robot is about to fail in a way it cannot recover from, so corrections fall on the contact phase. <sup>†</sup> RLT at this budget. With about 3× the online data it reaches 96.7 ± 5.8 on phone charging. Base policy and DSRL do not train with online intervention.</p>
+        <p class="lead prose extra">DAgger, SiLRI, and HIL-SERL get the same robot time. On phone charging, DAgger spends the 20 seed episodes online instead and falls from the 90% base policy to 63.3 ± 5.8. SiLRI and HIL-SERL train a visuomotor policy from scratch. On snack hanging and bowl placing they stay at 0% success, with intervention on more than 90% of steps. A few dozen episodes is not enough to train those policies on a task that lasts about a minute.</p>
         <div class="charts">
           <figure class="figure">
             <div class="plot">
               <img src="assets/efficiency.png" width="1080" height="552" alt="Success rate versus online episodes for BEE and RLT on phone charging and snack hanging.">
             </div>
-            <figcaption>On phone charging, BEE matches the base policy within a few episodes and then saturates. On snack hanging, where the base policy never succeeds, BEE climbs inside the same budget. RLT stays below it on both tasks.</figcaption>
+            <figcaption>On phone charging, BEE reaches the base policy within a few episodes and then stays there. On snack hanging the base policy is 0%, and BEE rises inside the same budget. RLT is below BEE on both.</figcaption>
           </figure>
           <figure class="figure">
             <div class="plot">
               <img src="assets/ablation.png" width="823" height="608" alt="Ablation of success and intervention rate on phone charging and snack hanging.">
             </div>
-            <figcaption>On snack hanging, dropping the VLA proposal inside the correction model falls to 15% success, using the raw takeover as a target falls to 20% with 55.5% intervention, and replacing the per-dimension constraint falls from 85% to 30% with intervention up to 62.8%. Removing the encoder still leaves 60%. The gain is the proposal-conditioned correction and the per-dimension constraint.</figcaption>
+            <figcaption>On snack hanging, BEE is 85% success and 17% intervention. Without the VLA proposal in the correction model: 15%. Using the raw takeover as the target: 20% success and 55.5% intervention. Without the per-dimension constraint: 30% success and 62.8% intervention. Without the encoder: 60% success. The drop from removing the encoder is smaller than the other three.</figcaption>
           </figure>
         </div>
       </div>

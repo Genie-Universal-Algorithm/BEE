@@ -188,8 +188,9 @@ a { color: inherit; }
 }
 
 section { padding: 56px 0 8px; }
-#abstract { padding-top: 28px; }
-#abstract .prose { max-width: 780px; }
+#abstract { padding-top: 36px; }
+#abstract .prose { max-width: none; }
+#abstract h2, #method h2 { max-width: none; }
 #abstract p { margin: 0 0 14px; color: #3a3e46; }
 #abstract p:last-child { margin-bottom: 0; }
 #abstract em { font-style: italic; color: var(--accent); }
@@ -200,7 +201,7 @@ section h2 {
   line-height: 1.15;
 }
 .lead, .prose p { margin: 0 0 14px; }
-.prose { max-width: 760px; }
+.prose { max-width: none; }
 .prose strong { font-weight: 700; }
 .setup { max-width: none; margin: 22px 0 0; color: #3a3e46; }
 .extra { margin-top: 18px; max-width: none; }
