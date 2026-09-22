@@ -30,28 +30,13 @@
 
   <main id="top">
     <header class="hero">
-      <p class="kicker">AgiBot Research</p>
       <h1 class="wordmark">BEE</h1>
       <p class="paper-title">Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models</p>
-      <ul class="authors">
-        <li>Weihui Zhao<sup>1,2</sup></li>
-        <li><a href="https://micro-han.github.io/">Xiaohan Yan</a><sup>2,†</sup></li>
-        <li>Zunian Wan<sup>2</sup></li>
-        <li>Xuan Du<sup>2</sup></li>
-        <li>Zhaozhan Chi<sup>2</sup></li>
-        <li>Jianbo Mao<sup>2</sup></li>
-        <li>Ruipu Wu<sup>2</sup></li>
-        <li>Rushuai Yang<sup>2</sup></li>
-        <li>Houlin Li<sup>2</sup></li>
-        <li>Shukai Yang<sup>2</sup></li>
-        <li>Jing Wu<sup>2</sup></li>
-        <li>Yuxiang Yan<sup>2</sup></li>
-        <li>Yongcheng Liu<sup>2</sup></li>
-        <li>Chuankang Li<sup>2</sup></li>
-        <li>Guanghui Ren<sup>2</sup></li>
-        <li>Wei Shan<sup>2</sup></li>
-        <li>Maoqing Yao<sup>2</sup></li>
-      </ul>
+      <p class="authors">
+        <span>Weihui Zhao<sup>1,2</sup>, Xiaohan Yan<sup>2,†</sup>, Zunian Wan<sup>2</sup>, Xuan Du<sup>2</sup>, Zhaozhan Chi<sup>2</sup>, Jianbo Mao<sup>2</sup></span>
+        <span>Ruipu Wu<sup>2</sup>, Rushuai Yang<sup>2</sup>, Houlin Li<sup>2</sup>, Shukai Yang<sup>2</sup>, Jing Wu<sup>2</sup>, Yuxiang Yan<sup>2</sup></span>
+        <span>Yongcheng Liu<sup>2</sup>, Chuankang Li<sup>2</sup>, Guanghui Ren<sup>2</sup>, Wei Shan<sup>2</sup>, Maoqing Yao<sup>2</sup></span>
+      </p>
       <p class="affiliations"><sup>1</sup> South China University of Technology &nbsp; <sup>2</sup> AgiBot &nbsp; <sup>†</sup> Corresponding author</p>
       <div class="actions">
         <a class="btn btn-primary" href="BEE.pdf">Paper<span>PDF</span></a>
@@ -81,7 +66,7 @@
         <h2>Method</h2>
         <p class="lead prose">The VLA stays frozen and still proposes the action chunk. BEE keeps that proposal, predicts where the human correction can be trusted, and trains only a lightweight residual.</p>
         <figure class="figure">
-          <img src="assets/overview.png" width="2160" height="816" alt="Overview of BEE. A frozen VLA proposes an action chunk. A correction model turns human interventions into a per-dimension constraint, and a residual policy optimizes return subject to that constraint.">
+          <img src="assets/overview.png" width="4384" height="1584" alt="Overview of BEE. A frozen VLA proposes an action chunk. A correction model turns human interventions into a per-dimension constraint, and a residual policy optimizes return subject to that constraint.">
           <figcaption>The residual policy balances a chunk-level critic, a VLA anchor, and a Lagrange-weighted correction penalty. At deployment, interventions are off and there is no extra inference cost.</figcaption>
         </figure>
         <ol class="steps">
