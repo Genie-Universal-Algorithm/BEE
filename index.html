@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BEE: Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models</title>
+  <meta name="description" content="BEE converts human corrections of a frozen vision-language-action policy into an uncertainty-aware, per-dimension constraint for real-world reinforcement learning.">
+  <link rel="canonical" href="https://genie-universal-algorithm.github.io/BEE/">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="BEE: Intervention-Adaptive Real-World RL with Vision-Language-Action Models">
+  <meta property="og:description" content="Highest success on every task at a matched online-data budget: 91.2% on average, against 57.5% for RLT and 42.1% for DSRL.">
+  <meta property="og:url" content="https://genie-universal-algorithm.github.io/BEE/">
+  <meta property="og:image" content="https://genie-universal-algorithm.github.io/BEE/assets/overview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#1b1914">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ScholarlyArticle",
+    "headline": "BEE: Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models",
+    "author": [
+      {"@type": "Person", "name": "Weihui Zhao"},
+      {"@type": "Person", "name": "Xiaohan Yan", "url": "https://micro-han.github.io/"},
+      {"@type": "Person", "name": "Zunian Wan"},
+      {"@type": "Person", "name": "Xuan Du"},
+      {"@type": "Person", "name": "Zhaozhan Chi"},
+      {"@type": "Person", "name": "Jianbo Mao"},
+      {"@type": "Person", "name": "Ruipu Wu"},
+      {"@type": "Person", "name": "Rushuai Yang"},
+      {"@type": "Person", "name": "Houlin Li"},
+      {"@type": "Person", "name": "Shukai Yang"},
+      {"@type": "Person", "name": "Jing Wu"},
+      {"@type": "Person", "name": "Yuxiang Yan"},
+      {"@type": "Person", "name": "Yongcheng Liu"},
+      {"@type": "Person", "name": "Chuankang Li"},
+      {"@type": "Person", "name": "Guanghui Ren"},
+      {"@type": "Person", "name": "Wei Shan"},
+      {"@type": "Person", "name": "Maoqing Yao"}
+    ],
+    "datePublished": "2026-09-22",
+    "url": "https://genie-universal-algorithm.github.io/BEE/",
+    "publisher": {"@type": "Organization", "name": "AgiBot", "url": "https://www.agibot.com/"}
+  }
+  </script>
+  <style>
+    :root {
+      --paper: #f3efe6;
+      --ink: #1c1915;
+      --muted: #5f584e;
+      --line: #ddd4c6;
+      --card: #fffdf8;
+      --honey: #8a4b08;
+      --honey-soft: #f6ead6;
+      --bee: #f4e2c4;
+      --good: #1d5c3a;
+      --shadow: 0 18px 50px rgba(48, 36, 16, 0.06);
+      --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", Georgia, serif;
+      --sans: "Avenir Next", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+      --mono: "SF Mono", "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 420px at 80% -10%, rgba(196, 138, 42, 0.16), transparent 60%),
+        var(--paper);
+      font-family: var(--sans);
+      font-size: 17px;
+      line-height: 1.6;
+    }
+    a { color: inherit; }
+    img { max-width: 100%; height: auto; display: block; }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+    header.top {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      backdrop-filter: blur(14px);
+      background: rgba(243, 239, 230, 0.88);
+      border-bottom: 1px solid rgba(28, 25, 21, 0.08);
+    }
+    .top .wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 64px;
+      gap: 16px;
+    }
+    .brand {
+      font-family: var(--serif);
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    nav { display: flex; gap: 18px; flex-wrap: wrap; }
+    nav a {
+      text-decoration: none;
+      color: var(--muted);
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+    nav a:hover { color: var(--ink); }
+    .hero { padding: 64px 0 28px; }
+    .kicker {
+      margin: 0 0 14px;
+      color: var(--honey);
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 650;
+    }
+    h1 {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: clamp(64px, 10vw, 112px);
+      line-height: 0.86;
+      font-weight: 560;
+      letter-spacing: -0.04em;
+    }
+    .subtitle {
+      margin: 18px 0 0;
+      max-width: 18em;
+      font-family: var(--serif);
+      font-size: clamp(26px, 3.4vw, 40px);
+      line-height: 1.18;
+      font-weight: 520;
+      letter-spacing: -0.02em;
+    }
+    .authors {
+      margin: 28px 0 0;
+      max-width: 860px;
+      color: var(--ink);
+      font-size: 16px;
+    }
+    .authors a { color: var(--ink); }
+    .affil {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14.5px;
+    }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #f7f2e8;
+      font-size: 14.5px;
+      font-weight: 600;
+    }
+    .btn.ghost { background: transparent; color: var(--ink); }
+    .btn:hover { transform: translateY(-1px); }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 34px;
+    }
+    .stat {
+      background: rgba(255, 253, 248, 0.72);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 18px 14px;
+    }
+    .stat b {
+      display: block;
+      font-family: var(--serif);
+      font-size: 34px;
+      line-height: 1;
+      font-weight: 560;
+      letter-spacing: -0.03em;
+    }
+    .stat span { display: block; margin-top: 8px; color: var(--muted); font-size: 14px; }
+    section, h2, h3 { scroll-margin-top: 84px; }
+    section { padding: 28px 0 10px; }
+    h2 {
+      margin: 0 0 14px;
+      font-family: var(--serif);
+      font-size: 32px;
+      font-weight: 560;
+      letter-spacing: -0.03em;
+    }
+    .lede, .prose p { margin: 0 0 12px; }
+    .prose { max-width: 760px; }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    .panel figcaption, .caption {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+    .scroll {
+      overflow-x: auto;
+      border-radius: 14px;
+    }
+    .overview { min-width: 860px; }
+    .steps {
+      list-style: none;
+      margin: 22px 0 0;
+      padding: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .steps li {
+      background: rgba(255, 253, 248, 0.65);
+      border-top: 2px solid var(--ink);
+      padding: 16px 4px 8px 0;
+    }
+    .steps strong { display: block; font-size: 16px; margin-bottom: 6px; }
+    .steps p { margin: 0; color: var(--muted); font-size: 15px; }
+    .task { margin: 22px 0 8px; }
+    .task-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+    .task-head h3 { margin: 0; font-size: 20px; font-family: var(--serif); font-weight: 560; }
+    .task-head p { margin: 0; color: var(--muted); font-size: 14px; }
+    .pill {
+      font-variant-numeric: tabular-nums;
+      background: var(--honey-soft);
+      color: var(--honey);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .frames {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .frames.three { grid-template-columns: repeat(3, 1fr); }
+    figure.frame { margin: 0; }
+    figure.frame img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      background: #ece7dc;
+    }
+    figure.frame figcaption {
+      margin-top: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 18px; background: var(--card); }
+    table { width: 100%; border-collapse: collapse; min-width: 820px; font-variant-numeric: tabular-nums; }
+    th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+    th { font-weight: 650; color: var(--muted); font-size: 12.5px; letter-spacing: 0.04em; text-transform: uppercase; }
+    td:first-child, th:first-child { text-align: left; }
+    thead th { background: #faf7f1; }
+    tr.bee td { background: #fbf3e4; font-weight: 700; }
+    .note { color: var(--muted); font-size: 13.5px; margin: 10px 2px 0; }
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+    .charts .panel img { width: 100%; background: white; border-radius: 10px; }
+    pre.bib {
+      margin: 0;
+      padding: 16px 16px 8px;
+      overflow-x: auto;
+      background: #1c1915;
+      color: #f6f0e6;
+      border-radius: 16px;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .bib-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    button.copy {
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 13.5px;
+      cursor: pointer;
+    }
+    footer {
+      margin-top: 48px;
+      border-top: 1px solid var(--line);
+      padding: 22px 0 40px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    footer a { color: var(--ink); }
+    @media (max-width: 860px) {
+      .stats, .steps, .frames, .frames.three { grid-template-columns: 1fr 1fr; }
+      .hero { padding-top: 36px; }
+      h1 { font-size: 72px; }
+    }
+    @media (max-width: 640px) {
+      .stats, .steps, .frames, .frames.three, .charts { grid-template-columns: 1fr; }
+      .top nav { display: none; }
+      .task-head { flex-direction: column; align-items: flex-start; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .btn:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <a class="brand" href="#top">BEE</a>
+      <nav>
+        <a href="#abstract">Abstract</a>
+        <a href="#method">Method</a>
+        <a href="#tasks">Tasks</a>
+        <a href="#results">Results</a>
+        <a href="#citation">Cite</a>
+        <a href="BEE.pdf">Paper</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="top">
+    <div class="wrap hero">
+      <p class="kicker">Beyond expert imitation</p>
+      <h1>BEE</h1>
+      <p class="subtitle">Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models</p>
+      <p class="authors">
+        Weihui Zhao<sup>1,2</sup>,
+        <a href="https://micro-han.github.io/">Xiaohan Yan</a><sup>2,†</sup>,
+        Zunian Wan<sup>2</sup>,
+        Xuan Du<sup>2</sup>,
+        Zhaozhan Chi<sup>2</sup>,
+        Jianbo Mao<sup>2</sup>,
+        Ruipu Wu<sup>2</sup>,
+        Rushuai Yang<sup>2</sup>,
+        Houlin Li<sup>2</sup>,
+        Shukai Yang<sup>2</sup>,
+        Jing Wu<sup>2</sup>,
+        Yuxiang Yan<sup>2</sup>,
+        Yongcheng Liu<sup>2</sup>,
+        Chuankang Li<sup>2</sup>,
+        Guanghui Ren<sup>2</sup>,
+        Wei Shan<sup>2</sup>,
+        Maoqing Yao<sup>2</sup>
+      </p>
+      <p class="affil"><sup>1</sup>South China University of Technology &nbsp; <sup>2</sup>AgiBot &nbsp; <sup>†</sup>Corresponding author</p>
+      <div class="actions">
+        <a class="btn" href="BEE.pdf">Paper PDF</a>
+        <a class="btn ghost" href="#citation">BibTeX</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>91.2%</b><span>average success, highest on every task</span></div>
+        <div class="stat"><b>57.5% / 42.1%</b><span>RLT and DSRL under the same data budget</span></div>
+        <div class="stat"><b>Lowest</b><span>human intervention on all three real-world tasks</span></div>
+      </div>
+    </div>
+
+    <section id="abstract">
+      <div class="wrap prose">
+        <h2>Abstract</h2>
+        <p>Vision-language-action (VLA) models handle long-horizon manipulation, yet success hinges on a few precision-critical phases where millimeter-scale errors undo all prior progress. Online reinforcement learning (RL) can optimize exactly these actions, but free exploration is far too costly on real robots, which makes human corrections indispensable. However, existing online RL methods for VLAs either cannot incorporate such corrections or fold them into undifferentiated supervision. Yet human corrections are not uniformly noisy but reliable along some action dimensions and variable along others.</p>
+        <p>Building on this, we introduce BEE, an intervention-adaptive framework for real-world RL on a frozen VLA that lets the policy go beyond expert imitation. We formulate human corrections not as actions to reproduce but as evidence about a constraint: a Correction Model predicts how a human would correct a given VLA proposal and how consistent the correction is along each action dimension. This predicted consistency sets the per-dimension tightness of a constraint on policy optimization. Where corrections are consistent the policy stays close to the human, and where they vary, the constraint relaxes. We evaluate BEE on three real-world manipulation tasks and one LIBERO-PRO simulation task at a matched online-data budget. BEE attains the highest success rate on every task, 91.2% on average against 57.5% for RLT and 42.1% for DSRL, and the lowest human intervention rate on all real-world tasks.</p>
+      </div>
+    </section>
+
+    <section id="method">
+      <div class="wrap">
+        <h2>Method</h2>
+        <p class="lede prose">A frozen VLA still proposes the action chunk. BEE does not imitate the human takeover. It keeps the proposal that prompted the correction, predicts where that correction is reliable, and lets return drive the residual only where the human is inconsistent.</p>
+        <figure class="panel">
+          <div class="scroll">
+            <img class="overview" src="assets/overview.png" width="2160" height="816" alt="Overview of BEE. A frozen VLA proposes an action chunk. A correction model turns human interventions into a per-dimension constraint, and a residual policy optimizes return subject to that constraint.">
+          </div>
+          <figcaption>BEE converts human corrections of VLA proposals into an uncertainty-aware constraint. The residual policy balances a chunk-level critic, a VLA anchor, and a Lagrange-weighted correction penalty.</figcaption>
+        </figure>
+        <ol class="steps">
+          <li>
+            <strong>Keep the VLA proposal</strong>
+            <p>An extractor reads the frozen VLA into a latent token. Together with robot state, that token is the RL state. The action expert’s chunk stays an explicit proposal, so deployment still starts from the VLA.</p>
+          </li>
+          <li>
+            <strong>Model the correction, not the action</strong>
+            <p>On human takeovers, a Correction Model predicts the residual relative to the proposal and a variance for each action dimension. Consistent dimensions become a tight constraint. Variable ones stay loose.</p>
+          </li>
+          <li>
+            <strong>Optimize a residual under that constraint</strong>
+            <p>The residual policy adds a correction to the proposal. Its objective trades off Q-value, staying near the VLA, and a state-dependent multiplier on the dimension-wise constraint. At deployment, interventions are off and there is no extra inference cost.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="tasks">
+      <div class="wrap">
+        <h2>Tasks</h2>
+        <p class="lede prose">Three real-robot tasks end in a contact that a millimeter can undo. Bowl placing is the matched LIBERO-PRO simulation task. Phone charging and cloth aligning are scored on the precision-critical phase. Snack hanging and bowl placing are scored on the full task.</p>
+
+        <article class="task">
+          <div class="task-head">
+            <h3>Phone charging</h3>
+            <p>Dual-arm cable alignment and insertion <span class="pill">BEE 100%</span></p>
+          </div>
+          <div class="frames">
+            <figure class="frame"><img src="assets/tasks/phone-1.jpg" alt="Robot approaching the charger plug"><figcaption>Approach the charger</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/phone-2.jpg" alt="Gripper grasping the charger"><figcaption>Grasp the charger</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/phone-3.jpg" alt="Charger aligned with the socket"><figcaption>Align with the socket</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/phone-4.jpg" alt="Charger inserted into the socket"><figcaption>Insert the charger</figcaption></figure>
+          </div>
+        </article>
+
+        <article class="task">
+          <div class="task-head">
+            <h3>Snack hanging</h3>
+            <p>Deformable package onto a rack <span class="pill">BEE 85%</span></p>
+          </div>
+          <div class="frames">
+            <figure class="frame"><img src="assets/tasks/snack-1.jpg" alt="Robot approaching a snack package"><figcaption>Approach the snack</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/snack-2.jpg" alt="Gripper grasping the snack package"><figcaption>Grasp the snack</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/snack-3.jpg" alt="Snack lifted toward the rack"><figcaption>Lift toward the rack</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/snack-4.jpg" alt="Snack hanging on the rack"><figcaption>Hang the snack</figcaption></figure>
+          </div>
+        </article>
+
+        <article class="task">
+          <div class="task-head">
+            <h3>Cloth aligning</h3>
+            <p>Grasp, transport, and seat the cloth on a frame <span class="pill">BEE 90%</span></p>
+          </div>
+          <div class="frames">
+            <figure class="frame"><img src="assets/tasks/cloth-1.jpg" alt="Robot grasping a piece of cloth"><figcaption>Grasp the cloth</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/cloth-2.jpg" alt="Cloth lifted off the table"><figcaption>Lift the cloth</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/cloth-3.jpg" alt="Cloth moved over the target frame"><figcaption>Move over the frame</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/cloth-4.jpg" alt="Cloth aligned onto the frame"><figcaption>Align onto the frame</figcaption></figure>
+          </div>
+        </article>
+
+        <article class="task">
+          <div class="task-head">
+            <h3>Bowl placing</h3>
+            <p>LIBERO-PRO simulation <span class="pill">BEE 90%</span></p>
+          </div>
+          <div class="frames three">
+            <figure class="frame"><img src="assets/tasks/bowl-1.jpg" alt="Simulated robot grasping a bowl"><figcaption>Grasp the bowl</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/bowl-2.jpg" alt="Bowl held above the plate"><figcaption>Move above the plate</figcaption></figure>
+            <figure class="frame"><img src="assets/tasks/bowl-4.jpg" alt="Bowl placed on the plate"><figcaption>Place the bowl</figcaption></figure>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="results">
+      <div class="wrap">
+        <h2>Results</h2>
+        <p class="lede prose">Every method starts from the same fine-tuned π<sub>0.5</sub> VLA. The comparison uses a matched budget of about 20 pre-collected human-correction episodes plus a fixed number of online episodes. Success is the mean and standard deviation over three rounds of 20 trials.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2">Method</th>
+                <th colspan="2">Phone charging</th>
+                <th colspan="2">Snack hanging</th>
+                <th colspan="2">Cloth aligning</th>
+                <th colspan="2">Bowl placing</th>
+                <th colspan="2">Overall</th>
+              </tr>
+              <tr>
+                <th>SR ↑</th><th>Int. ↓</th>
+                <th>SR ↑</th><th>Int. ↓</th>
+                <th>SR ↑</th><th>Int. ↓</th>
+                <th>SR ↑</th><th>Int. ↓</th>
+                <th>SR ↑</th><th>Int. ↓</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Base policy</td>
+                <td>90.0 ± 5.0</td><td>–</td>
+                <td>0.0 ± 0.0</td><td>–</td>
+                <td>36.7 ± 7.6</td><td>–</td>
+                <td>28.3 ± 7.6</td><td>–</td>
+                <td>38.8</td><td>–</td>
+              </tr>
+              <tr>
+                <td>RLT</td>
+                <td>58.3 ± 2.9<sup>†</sup></td><td>22.5</td>
+                <td>21.7 ± 5.8</td><td>62.1</td>
+                <td>73.3 ± 7.6</td><td>85.3</td>
+                <td>76.7 ± 17.6</td><td>26.2</td>
+                <td>57.5</td><td>49.0</td>
+              </tr>
+              <tr>
+                <td>DSRL</td>
+                <td>93.3 ± 2.9</td><td>–</td>
+                <td>13.3 ± 2.9</td><td>–</td>
+                <td>31.7 ± 2.9</td><td>–</td>
+                <td>30.0 ± 5.0</td><td>–</td>
+                <td>42.1</td><td>–</td>
+              </tr>
+              <tr class="bee">
+                <td>BEE</td>
+                <td>100.0 ± 0.0</td><td>12.2</td>
+                <td>85.0 ± 0.0</td><td>17.0</td>
+                <td>90.0 ± 10.0</td><td>65.3</td>
+                <td>90.0 ± 13.2</td><td>27.4</td>
+                <td>91.2</td><td>30.5</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note"><sup>†</sup>Reported at the matched online-data budget. RLT needs roughly 3× the online data to reach 96.7 ± 5.8 on phone charging. Base policy and DSRL have no online intervention, so no intervention rate is reported. SR is success rate (%). Int. is the fraction of control steps taken over by a human during online training.</p>
+
+        <div class="charts">
+          <figure class="panel">
+            <img src="assets/efficiency.png" alt="Success rate versus online robot episodes for BEE and RLT on phone charging and snack hanging.">
+            <figcaption>Sample efficiency. On phone charging BEE reaches the base policy within a few episodes and then saturates. On snack hanging, where the base policy never succeeds, BEE climbs to a high success rate inside the same budget. RLT stays below it on both tasks.</figcaption>
+          </figure>
+          <figure class="panel">
+            <img src="assets/ablation.png" alt="Ablation of success rate and human intervention rate on phone charging and snack hanging.">
+            <figcaption>Ablation. Removing the correction model, the VLA proposal inside it, or the per-dimension constraint hurts snack hanging the most: success drops and interventions rise. The encoder is not the source of the gain.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="citation">
+      <div class="wrap">
+        <div class="bib-bar">
+          <h2>Citation</h2>
+          <button class="copy" type="button" id="copy">Copy BibTeX</button>
+        </div>
+        <pre class="bib" id="bib">@misc{zhao2026bee,
+  title        = {BEE: Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models},
+  author       = {Zhao, Weihui and Yan, Xiaohan and Wan, Zunian and Du, Xuan and Chi, Zhaozhan and Mao, Jianbo and Wu, Ruipu and Yang, Rushuai and Li, Houlin and Yang, Shukai and Wu, Jing and Yan, Yuxiang and Liu, Yongcheng and Li, Chuankang and Ren, Guanghui and Shan, Wei and Yao, Maoqing},
+  year         = {2026},
+  howpublished = {\url{https://genie-universal-algorithm.github.io/BEE/}}
+}</pre>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      BEE project page. Authors at South China University of Technology and <a href="https://www.agibot.com/">AgiBot</a>.
+      Correspondence: <a href="mailto:yxhop666@gmail.com">Xiaohan Yan</a>.
+    </div>
+  </footer>
+  <script>
+    document.getElementById("copy").addEventListener("click", async function () {
+      const text = document.getElementById("bib").innerText;
+      const node = document.getElementById("bib");
+      try {
+        await navigator.clipboard.writeText(text);
+        this.textContent = "Copied";
+      } catch (err) {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        this.textContent = "Selected";
+      }
+      setTimeout(() => { this.textContent = "Copy BibTeX"; }, 1600);
+    });
+  </script>
+</body>
+</html>
