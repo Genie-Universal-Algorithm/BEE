@@ -7,7 +7,7 @@
   <meta name="description" content="BEE converts human corrections of a frozen vision-language-action policy into an uncertainty-aware, per-dimension constraint for real-world reinforcement learning.">
   <link rel="canonical" href="https://genie-universal-algorithm.github.io/BEE/">
   <meta property="og:title" content="BEE: Intervention-Adaptive Real-World RL with Vision-Language-Action Models">
-  <meta property="og:description" content="91.2% average success at a matched online-data budget, against 57.5% for RLT and 42.1% for DSRL.">
+  <meta property="og:description" content="BEE treats human corrections as a per-dimension constraint on a frozen VLA. 91.2% average success at a matched online-data budget, against 57.5% for RLT and 42.1% for DSRL.">
   <meta property="og:image" content="https://genie-universal-algorithm.github.io/BEE/assets/overview.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -21,10 +21,10 @@
   <header class="site-header">
     <a class="brand" href="#top">BEE</a>
     <nav class="site-nav">
+      <a href="#overview">Overview</a>
       <a href="#method">Method</a>
       <a href="#tasks">Tasks</a>
       <a href="#results">Results</a>
-      <a href="https://www.agibot.com/">AgiBot</a>
     </nav>
   </header>
 
@@ -37,48 +37,72 @@
         <span>Ruipu Wu<sup>2</sup>, Rushuai Yang<sup>2</sup>, Houlin Li<sup>2</sup>, Shukai Yang<sup>2</sup>, Jing Wu<sup>2</sup>, Yuxiang Yan<sup>2</sup></span>
         <span>Yongcheng Liu<sup>2</sup>, Chuankang Li<sup>2</sup>, Guanghui Ren<sup>2</sup>, Wei Shan<sup>2</sup>, Maoqing Yao<sup>2</sup></span>
       </p>
-      <p class="affiliations"><sup>1</sup> South China University of Technology &nbsp; <sup>2</sup> AgiBot &nbsp; <sup>†</sup> Corresponding author</p>
+      <p class="affiliations"><sup>1</sup> South China University of Technology &nbsp; <sup>2</sup> AgiBot</p>
+      <p class="corresponding"><sup>†</sup> Corresponding author</p>
       <div class="actions">
         <a class="btn btn-primary" href="BEE.pdf">Paper<span>PDF</span></a>
-        <a class="btn btn-secondary" href="#citation">BibTeX</a>
+        <span class="btn btn-soon" aria-disabled="true">Code<em>Coming Soon</em></span>
       </div>
     </header>
 
-    <div class="page stage">
-      <div class="film">
-        <a href="#tasks"><img src="assets/tasks/phone-4.jpg" alt="Charger inserted into a socket"><span>Phone charging</span></a>
-        <a href="#tasks"><img src="assets/tasks/snack-4.jpg" alt="Snack package hanging on a rack"><span>Snack hanging</span></a>
-        <a href="#tasks"><img src="assets/tasks/cloth-4.jpg" alt="Cloth aligned on a frame"><span>Cloth aligning</span></a>
-        <a href="#tasks"><img src="assets/tasks/bowl-4.jpg" alt="Bowl placed on a plate in simulation"><span>Bowl placing</span></a>
+    <div class="page stage" id="overview">
+      <video id="intro" class="hero-video" controls playsinline preload="metadata" poster="assets/bee-intro-poster.jpg">
+        <source src="assets/bee-intro.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <div class="page facts-wrap">
+      <div class="facts">
+        <div>
+          <span>Method</span>
+          <strong>A constraint, not a target</strong>
+          <p>The frozen VLA still proposes the chunk. A human correction sets how tightly each action dimension may move.</p>
+        </div>
+        <div>
+          <span>Tasks</span>
+          <strong>Three real, one simulated</strong>
+          <p>Phone charging, snack hanging, cloth aligning, and bowl placing in LIBERO-Pro.</p>
+        </div>
+        <div>
+          <span>Success</span>
+          <strong>91.2% on average</strong>
+          <p>Highest on every task, against 57.5% for RLT and 42.1% for DSRL at the same online budget.</p>
+        </div>
+        <div>
+          <span>Intervention</span>
+          <strong>Lower on every real task</strong>
+          <p>The operator takes over less often than RLT on phone charging, snack hanging, and cloth aligning.</p>
+        </div>
       </div>
     </div>
 
     <section id="abstract">
       <div class="page prose">
         <h2>Abstract</h2>
-        <p>Vision-language-action (VLA) models handle long-horizon manipulation, yet success hinges on a few precision-critical phases where millimeter-scale errors undo all prior progress. Online reinforcement learning can optimize exactly these actions, but free exploration is far too costly on real robots, which makes human corrections indispensable. Existing methods either cannot use those corrections or fold them into undifferentiated supervision. Human corrections are not uniformly noisy: they are reliable along some action dimensions and variable along others.</p>
-        <p><strong>BEE</strong> treats a correction as evidence about a constraint, not as an action to copy. A Correction Model predicts how a human would correct a frozen VLA proposal, and how consistent that correction is on each action dimension. Consistent dimensions stay tight. Variable ones relax, so return can move the policy beyond expert imitation. On three real-world tasks and one LIBERO-PRO simulation task, at a matched online-data budget, BEE reaches the highest success rate on every task: 91.2% on average, against 57.5% for RLT and 42.1% for DSRL, with the lowest human intervention rate on all real-world tasks.</p>
+        <p>Vision-language-action (VLA) models handle long-horizon manipulation, yet success hinges on a few precision-critical phases where millimeter-scale errors undo all prior progress. Online reinforcement learning (RL) can optimize exactly these actions, but free exploration is far too costly on real robots, which makes human corrections indispensable. Existing online RL methods for VLAs either cannot incorporate such corrections or fold them into undifferentiated supervision. Human corrections are not uniformly noisy: they are reliable along some action dimensions and variable along others.</p>
+        <p>We introduce BEE, an intervention-adaptive framework for real-world RL on a frozen VLA that lets the policy go <em>BEyond Expert</em> imitation. Human corrections are not actions to reproduce, but evidence about a constraint. A Correction Model predicts how a human would correct a given VLA proposal, and how consistent that correction is along each action dimension. This predicted consistency sets the per-dimension tightness of a constraint on policy optimization. Where corrections are consistent the policy stays close to the human; where they vary, the constraint relaxes.</p>
+        <p>We evaluate BEE on three real-world manipulation tasks and one LIBERO-Pro simulation task at a matched online-data budget. BEE attains the highest success rate on every task, 91.2% on average against 57.5% for RLT and 42.1% for DSRL, and the lowest human intervention rate on all real-world tasks.</p>
       </div>
     </section>
 
     <section id="method">
       <div class="page">
         <h2>Method</h2>
-        <p class="lead prose">The VLA stays frozen and still proposes the action chunk. BEE keeps that proposal, predicts where the human correction can be trusted, and trains only a lightweight residual.</p>
+        <p class="lead prose">BEE keeps the frozen VLA as a proposal and trains only a residual. A Correction Model turns each human takeover into an uncertainty-aware, per-dimension constraint, rather than into an action to copy.</p>
         <figure class="figure">
           <img src="assets/overview.png" width="4384" height="1584" alt="Overview of BEE. A frozen VLA proposes an action chunk. A correction model turns human interventions into a per-dimension constraint, and a residual policy optimizes return subject to that constraint.">
-          <figcaption>The residual policy balances a chunk-level critic, a VLA anchor, and a Lagrange-weighted correction penalty. At deployment, interventions are off and there is no extra inference cost.</figcaption>
+          <figcaption>The residual balances a chunk-level critic, a VLA anchor, and a Lagrange-weighted correction penalty. At deployment, interventions are off and there is no extra inference cost.</figcaption>
         </figure>
         <ol class="steps">
           <li>
             <em>01</em>
             <strong>Keep the proposal</strong>
-            <p>An extractor turns the frozen VLA into a latent token. With robot state, that token is the RL state. The action chunk remains an explicit proposal.</p>
+            <p>All runs start from open-source π<sub>0.5</sub>, fine-tuned per task and then frozen. An RLT-style extractor maps its features to a 2048-d latent token. With proprioception, that token is the RL state. The action chunk stays an explicit proposal.</p>
           </li>
           <li>
             <em>02</em>
             <strong>Model the correction</strong>
-            <p>On a human takeover, the Correction Model predicts the residual relative to the proposal and a variance on each action dimension.</p>
+            <p>On a human takeover, the Correction Model predicts the residual relative to the VLA proposal and a variance on each action dimension. The constraint is tight where the correction is consistent, and loose where it varies.</p>
           </li>
           <li>
             <em>03</em>
@@ -86,13 +110,14 @@
             <p>The learned residual is added to the proposal. The update trades off Q-value, staying near the VLA, and a state-dependent multiplier on the dimension-wise constraint.</p>
           </li>
         </ol>
+        <p class="lead prose setup">The residual is not applied to every dimension. Phone charging and cloth aligning are dual-arm joint-space tasks; online RL edits only the seven right-arm joints that perform the precision-critical step, which is also the arm the operator intervenes on. Snack hanging and bowl placing are end-effector tasks; the residual edits pose, and the gripper is held at the VLA proposal. On the two-phase tasks, a progress head trained during supervised fine-tuning hands control from the frozen approach chunk to the online residual.</p>
       </div>
     </section>
 
     <section id="tasks">
       <div class="page">
         <h2>Tasks</h2>
-        <p class="lead prose">Three real-robot tasks end in a contact that a millimeter can undo. Bowl placing is the matched LIBERO-PRO task. Phone charging and cloth aligning are scored on the precision-critical phase. Snack hanging and bowl placing are scored on the full task.</p>
+        <p class="lead prose">The real-world tasks run on a dual-arm robot with three 480×640 RGB cameras: one on the head and one on each wrist. The frozen VLA sees these views, the language instruction, and proprioception. The online learner sees only the latent token and robot state.</p>
 
         <article class="task">
           <div class="task-head">
@@ -139,7 +164,7 @@
         <article class="task">
           <div class="task-head">
             <h3>Bowl placing</h3>
-            <p>LIBERO-PRO</p>
+            <p>LIBERO-Pro spatial suite, task 9</p>
             <span class="pill">90%</span>
           </div>
           <div class="frames three">
@@ -148,18 +173,74 @@
             <figure class="frame"><img src="assets/tasks/bowl-4.jpg" alt="Bowl placed on the plate"><figcaption>Place the bowl</figcaption></figure>
           </div>
         </article>
+
+        <div class="table-wrap spec-wrap">
+          <table class="spec">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Env</th>
+                <th>Control</th>
+                <th>RL edits</th>
+                <th>Scored on</th>
+                <th>Reward / success</th>
+                <th>Online budget</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Phone charging</td>
+                <td>Real, 30 Hz</td>
+                <td>Joint, 16 / 160</td>
+                <td>7 right-arm joints</td>
+                <td>Critical phase</td>
+                <td>Sparse; charger inserted</td>
+                <td>70</td>
+              </tr>
+              <tr>
+                <td>Snack hanging</td>
+                <td>Real, 30 Hz</td>
+                <td>End-effector, 8 / 160</td>
+                <td>Pose; gripper held</td>
+                <td>Full task</td>
+                <td>Sparse; hung on rack</td>
+                <td>70</td>
+              </tr>
+              <tr>
+                <td>Cloth aligning</td>
+                <td>Real, 30 Hz</td>
+                <td>Joint, 16 / 160</td>
+                <td>7 right-arm joints</td>
+                <td>Critical phase</td>
+                <td>Dense SAM 3; mask IoU &gt; 0.85</td>
+                <td>70</td>
+              </tr>
+              <tr>
+                <td>Bowl placing</td>
+                <td>LIBERO-Pro, 20 Hz</td>
+                <td>End-effector, 7 / 35</td>
+                <td>Pose; gripper held</td>
+                <td>Full task</td>
+                <td>Sparse; bowl on plate</td>
+                <td>25</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Action space lists the per-timestep dimension <em>d</em> and the chunked dimension <em>D = Kd</em> seen by the actor. Phone charging, snack hanging, and bowl placing use a sparse completion reward; cloth aligning uses a vision-based dense reward from the increment of an alignment potential, and the same mask IoU is the success criterion. Completion on the sparse tasks is an operator button.</p>
       </div>
     </section>
 
     <section id="results">
       <div class="page">
         <h2>Results</h2>
-        <div class="metrics">
-          <div><b>91.2%</b><span>Average success, highest on every task</span></div>
-          <div><b>57.5%</b><span>RLT at the same online-data budget</span></div>
-          <div><b>42.1%</b><span>DSRL at the same online-data budget</span></div>
-        </div>
-        <p class="lead prose">Every method starts from the same fine-tuned π<sub>0.5</sub> VLA, with about 20 pre-collected correction episodes plus a fixed number of online episodes. Success is the mean over three rounds of 20 trials.</p>
+        <p class="lead prose">Every method starts from the same fine-tuned π<sub>0.5</sub> and is given the same total robot interaction: 90 episodes on each real-world task and 45 on bowl placing. BEE, RLT, SiLRI, and HIL-SERL spend about 20 of those episodes as pre-collected human corrections that seed the demonstration buffer, then 70 online episodes on the real tasks and 25 on bowl placing. DSRL and DAgger have no demonstration buffer, so they spend the same 20 episodes online instead.</p>
+        <p class="compare">
+          <span class="compare-label">Average success</span>
+          <span class="bee">BEE <b>91.2%</b></span>
+          <span>RLT 57.5%</span>
+          <span>DSRL 42.1%</span>
+        </p>
         <div class="table-wrap">
           <table>
             <thead>
@@ -215,15 +296,20 @@
             </tbody>
           </table>
         </div>
-        <p class="note"><sup>†</sup> At the matched budget. RLT needs roughly 3× the online data to reach 96.7 ± 5.8 on phone charging. Base policy and DSRL have no online intervention. SR is success rate (%). Int. is the fraction of control steps taken over by a human.</p>
+        <p class="note"><sup>†</sup> At the matched budget. RLT needs roughly 3× the online data to reach 96.7 ± 5.8 on phone charging. Base policy and DSRL have no online intervention. SR is success rate (%). Int. is the fraction of control steps taken over by a human. During online training the operator takes over only when the robot is about to fail in a way it cannot recover from, so corrections concentrate on the contact phase.</p>
+        <p class="lead prose extra">The same budget also rules out methods that do not use the frozen VLA, or that only imitate the operator. On phone charging, DAgger receives 20 extra online episodes in place of the seed corrections and still falls to 63.3 ± 5.8 from the 90% base policy. SiLRI and HIL-SERL train visuomotor policies from scratch; on snack hanging and bowl placing they stay at 0% success and require intervention on more than 90% of steps. A budget of tens of episodes is far below what a from-scratch policy needs on a minute-long task.</p>
         <div class="charts">
           <figure class="figure">
-            <img src="assets/efficiency.png" alt="Success rate versus online episodes for BEE and RLT on phone charging and snack hanging.">
+            <div class="plot">
+              <img src="assets/efficiency.png" width="1080" height="552" alt="Success rate versus online episodes for BEE and RLT on phone charging and snack hanging.">
+            </div>
             <figcaption>On phone charging, BEE matches the base policy within a few episodes and then saturates. On snack hanging, where the base policy never succeeds, BEE climbs inside the same budget. RLT stays below it on both tasks.</figcaption>
           </figure>
           <figure class="figure">
-            <img src="assets/ablation.png" alt="Ablation of success and intervention rate on phone charging and snack hanging.">
-            <figcaption>Removing the correction model, the VLA proposal inside it, or the per-dimension constraint hurts snack hanging most. The encoder is not the source of the gain.</figcaption>
+            <div class="plot">
+              <img src="assets/ablation.png" width="823" height="608" alt="Ablation of success and intervention rate on phone charging and snack hanging.">
+            </div>
+            <figcaption>Removing the correction model, the VLA proposal inside it, or the per-dimension constraint hurts snack hanging most. The encoder is not the source of the gain. The state-dependent multiplier stays near zero where the policy already agrees with the correction, and large only where the constraint is active; a single global multiplier would average those two regimes.</figcaption>
           </figure>
         </div>
       </div>
@@ -231,16 +317,14 @@
 
     <section id="citation">
       <div class="page">
-        <div class="cite-head">
-          <h2>Citation</h2>
-          <button class="copy" type="button" id="copy">Copy BibTeX</button>
-        </div>
+        <h2>Citation</h2>
         <pre class="bib" id="bib">@misc{zhao2026bee,
-  title        = {BEE: Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models},
-  author       = {Zhao, Weihui and Yan, Xiaohan and Wan, Zunian and Du, Xuan and Chi, Zhaozhan and Mao, Jianbo and Wu, Ruipu and Yang, Rushuai and Li, Houlin and Yang, Shukai and Wu, Jing and Yan, Yuxiang and Liu, Yongcheng and Li, Chuankang and Ren, Guanghui and Shan, Wei and Yao, Maoqing},
-  year         = {2026},
-  howpublished = {\url{https://genie-universal-algorithm.github.io/BEE/}}
+  title  = {BEE: Intervention-Adaptive Real-World Reinforcement Learning with Vision-Language-Action Models},
+  author = {Zhao, Weihui and Yan, Xiaohan and Wan, Zunian and Du, Xuan and Chi, Zhaozhan and Mao, Jianbo and Wu, Ruipu and Yang, Rushuai and Li, Houlin and Yang, Shukai and Wu, Jing and Yan, Yuxiang and Liu, Yongcheng and Li, Chuankang and Ren, Guanghui and Shan, Wei and Yao, Maoqing},
+  year   = {2026},
+  url    = {https://genie-universal-algorithm.github.io/BEE/}
 }</pre>
+        <button class="copy" type="button" id="copy">Copy BibTeX</button>
       </div>
     </section>
   </main>
