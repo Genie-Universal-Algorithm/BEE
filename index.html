@@ -10,7 +10,7 @@
   <meta property="og:description" content="BEE treats human corrections as a per-dimension constraint on a frozen VLA. 91.2% average success at a matched online-data budget, against 57.5% for RLT and 42.1% for DSRL.">
   <meta property="og:image" content="https://genie-universal-algorithm.github.io/BEE/assets/overview.png">
   <meta name="twitter:card" content="summary_large_image">
-  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.png" type="image/png">
   <meta name="theme-color" content="#fbfbfc">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,12 +19,13 @@
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="#top">BEE</a>
+    <a class="brand" href="#top"><img class="bee" src="assets/bee-mark.png" alt="">BEE</a>
     <nav class="site-nav">
       <a href="#overview">Overview</a>
       <a href="#method">Method</a>
       <a href="#tasks">Tasks</a>
       <a href="#results">Results</a>
+      <a href="#deployments">Deployments</a>
     </nav>
   </header>
 
@@ -80,7 +81,7 @@
       <div class="page prose">
         <h2>Abstract</h2>
         <p>Vision-language-action (VLA) models handle long-horizon manipulation, yet success hinges on a few precision-critical phases where millimeter-scale errors undo all prior progress. Online reinforcement learning (RL) can optimize exactly these actions, but free exploration is far too costly on real robots, which makes human corrections indispensable. Existing online RL methods for VLAs either cannot incorporate such corrections or fold them into undifferentiated supervision. Human corrections are not uniformly noisy: they are reliable along some action dimensions and variable along others.</p>
-        <p>We introduce BEE, an intervention-adaptive framework for real-world RL on a frozen VLA that lets the policy go <em>BEyond Expert</em> imitation. Human corrections are not actions to reproduce, but evidence about a constraint. A Correction Model predicts how a human would correct a given VLA proposal, and how consistent that correction is along each action dimension. This predicted consistency sets the per-dimension tightness of a constraint on policy optimization. Where corrections are consistent the policy stays close to the human; where they vary, the constraint relaxes.</p>
+        <p>We introduce BEE, an intervention-adaptive framework for real-world RL on a frozen VLA that lets the policy go <em>BEyond Expert imitation</em>. Human corrections are not actions to reproduce, but evidence about a constraint. A Correction Model predicts how a human would correct a given VLA proposal, and how consistent that correction is along each action dimension. This predicted consistency sets the per-dimension tightness of a constraint on policy optimization. Where corrections are consistent the policy stays close to the human; where they vary, the constraint relaxes.</p>
         <p>We evaluate BEE on three real-world manipulation tasks and one LIBERO-Pro simulation task at a matched online-data budget. BEE attains the highest success rate on every task, 91.2% on average against 57.5% for RLT and 42.1% for DSRL, and the lowest human intervention rate on all real-world tasks.</p>
       </div>
     </section>
@@ -102,14 +103,29 @@
           <li>
             <em>02</em>
             <strong>Model the correction</strong>
-            <p>On a human takeover, the Correction Model predicts the residual relative to the VLA proposal and a variance on each action dimension. The constraint is tight where the correction is consistent, and loose where it varies.</p>
+            <p>On a human takeover, the Correction Model predicts the residual relative to the VLA proposal and a variance on each action dimension. On an insertion, the downward correction is often consistent and the rotation is not. The constraint stays tight on the consistent part and relaxes on the rest.</p>
           </li>
           <li>
             <em>03</em>
             <strong>Optimize the residual</strong>
-            <p>The learned residual is added to the proposal. The update trades off Q-value, staying near the VLA, and a state-dependent multiplier on the dimension-wise constraint.</p>
+            <p>The learned residual is added to the proposal. The update trades off Q-value, staying near the VLA, and a state-dependent multiplier on the dimension-wise constraint. The penalty is summed over the chunk, so one timestep cannot set the tightness of the whole block.</p>
           </li>
         </ol>
+        <h3 class="subhead">Stay close where humans agree</h3>
+        <div class="pair">
+          <figure class="figure">
+            <div class="plot">
+              <img src="assets/correction-fit.png" width="1652" height="1480" alt="On phone charging, the correction model matches human corrections more closely than the VLA proposal, and its predicted spread follows the human spread on each joint.">
+            </div>
+            <figcaption>On phone charging, the predicted correction is closer to the human than the VLA proposal on all seven intervened joints. The predicted spread follows the human spread, which varies by about 3× from the most consistent joint, q2, to the most variable, q7.</figcaption>
+          </figure>
+          <figure class="figure">
+            <div class="plot">
+              <img src="assets/constraint-share.png" width="3338" height="1218" alt="Constraint share across seven joints. A state-wise penalty loads the noisiest joint. The Mahalanobis penalty loads the most consistent joint.">
+            </div>
+            <figcaption>A state-wise squared error gives the largest share to q5, one of the least consistent joints. Weighting by the predicted variance moves that share to q2, cuts the share of q5 by more than half, and leaves q7 with the smallest share.</figcaption>
+          </figure>
+        </div>
         <p class="lead prose setup">The residual is not applied to every dimension. Phone charging and cloth aligning are dual-arm joint-space tasks; online RL edits only the seven right-arm joints that perform the precision-critical step, which is also the arm the operator intervenes on. Snack hanging and bowl placing are end-effector tasks; the residual edits pose, and the gripper is held at the VLA proposal. On the two-phase tasks, a progress head trained during supervised fine-tuning hands control from the frozen approach chunk to the online residual.</p>
       </div>
     </section>
@@ -309,7 +325,43 @@
             <div class="plot">
               <img src="assets/ablation.png" width="823" height="608" alt="Ablation of success and intervention rate on phone charging and snack hanging.">
             </div>
-            <figcaption>Removing the correction model, the VLA proposal inside it, or the per-dimension constraint hurts snack hanging most. The encoder is not the source of the gain. The state-dependent multiplier stays near zero where the policy already agrees with the correction, and large only where the constraint is active; a single global multiplier would average those two regimes.</figcaption>
+            <figcaption>On snack hanging, dropping the VLA proposal inside the correction model falls to 15% success, using the raw takeover as a target falls to 20% with 55.5% intervention, and replacing the per-dimension constraint falls from 85% to 30% with intervention up to 62.8%. Removing the encoder still leaves 60%. The gain is the proposal-conditioned correction and the per-dimension constraint.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section id="deployments">
+      <div class="page">
+        <h2>Deployments</h2>
+        <p class="lead prose">Two tasks sit outside the four-task comparison above, so they are not part of the 91.2% average. On both, training converged within one hour. Each was then tested 100 times, and all 100 succeeded.</p>
+        <div class="rollouts">
+          <figure class="figure">
+            <video controls playsinline preload="metadata" poster="assets/plug-insertion.jpg">
+              <source src="assets/plug-insertion.mp4" type="video/mp4">
+            </video>
+            <figcaption><strong>Plug insertion</strong> The arm aligns the plug with the socket and pushes it in.</figcaption>
+          </figure>
+          <figure class="figure">
+            <video controls playsinline preload="metadata" poster="assets/panel-pressing.jpg">
+              <source src="assets/panel-pressing.mp4" type="video/mp4">
+            </video>
+            <figcaption><strong>Dual-arm panel pressing</strong> The two arms lower the panel onto the fixture and press it flat.</figcaption>
+          </figure>
+        </div>
+        <p class="lead prose extra">Phone charging and snack hanging are the two paper tasks plotted above. Cloth aligning and bowl placing stay as the stills in Tasks.</p>
+        <div class="rollouts">
+          <figure class="figure">
+            <video controls playsinline preload="metadata" poster="assets/phone-charging.jpg">
+              <source src="assets/phone-charging.mp4" type="video/mp4">
+            </video>
+            <figcaption><strong>Phone charging</strong> One arm picks the charger up from the table, brings the plug to the power strip, and inserts it. This is the precision phase scored in the paper.</figcaption>
+          </figure>
+          <figure class="figure">
+            <video controls playsinline preload="metadata" poster="assets/snack-hanging.jpg">
+              <source src="assets/snack-hanging.mp4" type="video/mp4">
+            </video>
+            <figcaption><strong>Snack hanging</strong> The gripper takes a soft snack bag from the table, lifts it to the rack, and hangs it from the top edge. The clip is one hang.</figcaption>
           </figure>
         </div>
       </div>
@@ -348,6 +400,48 @@
       }
       setTimeout(() => { this.textContent = "Copy BibTeX"; }, 1600);
     });
+
+    document.querySelectorAll("video").forEach((video) => {
+      let dragging = false;
+      const fraction = (event) => {
+        const rect = video.getBoundingClientRect();
+        const x = Math.min(rect.width, Math.max(0, event.clientX - rect.left));
+        return rect.width ? x / rect.width : 0;
+      };
+      const onPicture = (event) => {
+        const rect = video.getBoundingClientRect();
+        return event.clientY < rect.bottom - 48;
+      };
+      video.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0 || !onPicture(event) || !Number.isFinite(video.duration)) return;
+        dragging = true;
+        video.pause();
+        video.currentTime = fraction(event) * video.duration;
+        video.setPointerCapture(event.pointerId);
+      });
+      video.addEventListener("pointermove", (event) => {
+        if (!dragging || !Number.isFinite(video.duration)) return;
+        video.currentTime = fraction(event) * video.duration;
+      });
+      const stop = () => { dragging = false; };
+      video.addEventListener("pointerup", stop);
+      video.addEventListener("pointercancel", stop);
+    });
+
+    const zoom = document.createElement("div");
+    zoom.id = "zoom";
+    zoom.hidden = true;
+    const zoomImg = document.createElement("img");
+    zoom.appendChild(zoomImg);
+    document.body.appendChild(zoom);
+    document.querySelectorAll(".figure img").forEach((img) => {
+      img.addEventListener("click", () => {
+        zoomImg.src = img.currentSrc || img.src;
+        zoomImg.alt = img.alt;
+        zoom.hidden = false;
+      });
+    });
+    zoom.addEventListener("click", () => { zoom.hidden = true; });
   </script>
 </body>
 </html>
